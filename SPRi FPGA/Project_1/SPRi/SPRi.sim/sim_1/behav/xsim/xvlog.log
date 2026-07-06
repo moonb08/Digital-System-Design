@@ -1,0 +1,10 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/mnbor/OneDrive/Documents/Internship/rtl/bg_subtraction.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module bg_subtraction
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/mnbor/OneDrive/Documents/Internship/rtl/roi_centroid.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module roi_centroid
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/mnbor/OneDrive/Documents/Internship/rtl/spr_pipeline.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module spr_pipeline
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/mnbor/OneDrive/Documents/Internship/tb/tb_spr_pipeline.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_spr_pipeline
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/mnbor/OneDrive/Documents/Internship/Project_1/SPRi/SPRi.sim/sim_1/behav/xsim/glbl.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module glbl

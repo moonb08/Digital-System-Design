@@ -1,0 +1,38 @@
+Time resolution is 1 ps
+ERROR: Could not open VCD file sim/tb_bg_subtraction.vcd for writing.
+========================================
+  BG Subtraction Testbench Starting
+========================================
+
+--- Test 1: Normal subtraction ---
+[FAIL] Test 1: curr=3000 ref=1000 | diff=2000 (expected=2000) valid_out=0
+[FAIL] Test 2: curr=4095 ref=100 | diff=3995 (expected=3995) valid_out=0
+[FAIL] Test 3: curr=500 ref=200 | diff=300 (expected=300) valid_out=0
+
+--- Test 2: Zero difference ---
+[FAIL] Test 4: curr=2048 ref=2048 | diff=0 (expected=0) valid_out=0
+[FAIL] Test 5: curr=0 ref=0 | diff=0 (expected=0) valid_out=0
+
+--- Test 3: Negative clamp (rectification) ---
+[FAIL] Test 6: curr=100 ref=500 | diff=0 (expected=0) valid_out=0
+[FAIL] Test 7: curr=0 ref=4095 | diff=0 (expected=0) valid_out=0
+[FAIL] Test 8: curr=1000 ref=1001 | diff=0 (expected=0) valid_out=0
+
+--- Test 4: SPR Dip Simulation (64 pixels) ---
+  Reference = 2000 (flat baseline)
+  Sample    = Gaussian dip centered at pixel 32
+  Pixel | Curr | Ref  | Diff
+  p=00  | 2000 | 2000 | 0000  overflow=1
+  p=01  | 2000 | 2000 | 0000  overflow=0
+  p=02  | 2000 | 2000 | 0000  overflow=0
+  p=03  | 2000 | 2000 | 0000  overflow=0
+  p=04  | 2000 | 2000 | 0000  overflow=0
+  p=05  | 2000 | 2000 | 0000  overflow=0
+  p=06  | 2000 | 2000 | 0000  overflow=0
+  p=07  | 2000 | 2000 | 0000  overflow=0
+  p=08  | 2000 | 2000 | 0000  overflow=0
+  p=09  | 2000 | 2000 | 0000  overflow=0
+  p=10  | 2000 | 2000 | 0000  overflow=0
+  p=11  | 2000 | 2000 | 0000  overflow=0
+  p=12  | 2000 | 2000 | 0000  overflow=0
+  p=13  | 2000 | 2000 | 0000  overflow=0

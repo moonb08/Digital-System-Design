@@ -1,0 +1,8 @@
+C:/Users/mnbor/OneDrive/Documents/Internship/rtl/bg_subtraction.v {1 {vlog -work work -stats=none C:/Users/mnbor/OneDrive/Documents/Internship/rtl/bg_subtraction.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module bg_subtraction
+
+Top level modules:
+	bg_subtraction
+
+} {} {}}

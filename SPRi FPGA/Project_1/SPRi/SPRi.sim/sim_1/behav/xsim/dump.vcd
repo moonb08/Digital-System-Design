@@ -1,0 +1,813 @@
+$date
+   Mon Jun 29 01:33:16 2026
+$end
+
+$version
+  2025.2
+$end
+
+$timescale
+  1ps
+$end
+
+$scope module tb_spr_pipeline $end
+$var reg 1 ! clk $end
+$var reg 1 " rst_n $end
+$var reg 1 # start_frame $end
+$var reg 12 $ current_pixel [11:0] $end
+$var reg 12 % ref_pixel [11:0] $end
+$var reg 1 & valid_in $end
+$var wire 10 ' p_min [9:0] $end
+$var wire 1 ( done $end
+$var wire 1 ) busy $end
+$var wire 12 * diff_pixel [11:0] $end
+$var wire 1 + valid_out_pixel $end
+$var wire 1 , overflow_flag $end
+$var wire 32 - dbg_numerator [31:0] $end
+$var wire 22 . dbg_denominator [21:0] $end
+$var integer 32 / i [31:0] $end
+$var real 32 0 dist $end
+$var real 32 1 val $end
+$var integer 32 2 curr_val [31:0] $end
+$var integer 32 3 ref_val [31:0] $end
+$scope module dut $end
+$var wire 1 4 clk $end
+$var wire 1 5 rst_n $end
+$var wire 1 6 start_frame $end
+$var wire 12 7 current_pixel [11:0] $end
+$var wire 12 8 ref_pixel [11:0] $end
+$var wire 1 9 valid_in $end
+$var wire 1 : ready_out $end
+$var wire 10 ' p_min [9:0] $end
+$var wire 1 ( done $end
+$var wire 1 ) busy $end
+$var wire 12 * diff_pixel [11:0] $end
+$var wire 1 + valid_out_pixel $end
+$var wire 1 , overflow_flag $end
+$var wire 32 - dbg_numerator [31:0] $end
+$var wire 22 . dbg_denominator [21:0] $end
+$var wire 12 ; bg_dip_depth [11:0] $end
+$var wire 1 < bg_valid_out $end
+$scope module u_bg_sub $end
+$var wire 1 4 clk $end
+$var wire 1 5 rst_n $end
+$var wire 12 7 current_pixel [11:0] $end
+$var wire 12 8 ref_pixel [11:0] $end
+$var wire 1 9 valid_in $end
+$var wire 1 : ready_out $end
+$var reg 12 = diff_pixel [11:0] $end
+$var reg 1 > valid_out $end
+$var reg 1 ? overflow_flag $end
+$var reg 12 @ dip_depth [11:0] $end
+$var wire 13 A diff_raw [12:0] $end
+$upscope $end
+$scope module u_centroid $end
+$var wire 1 4 clk $end
+$var wire 1 5 rst_n $end
+$var wire 1 6 start $end
+$var wire 12 ; dip_depth [11:0] $end
+$var wire 1 < valid_in $end
+$var reg 10 B p_min [9:0] $end
+$var reg 1 C done $end
+$var reg 1 D busy $end
+$var reg 32 E dbg_numerator [31:0] $end
+$var reg 22 F dbg_denominator [21:0] $end
+$var reg 2 G state [1:0] $end
+$var reg 10 H pixel_addr [9:0] $end
+$var reg 32 I numerator [31:0] $end
+$var reg 22 J denominator [21:0] $end
+$var reg 10 K pix_count [9:0] $end
+$var wire 12 L weight [11:0] $end
+$var reg 32 M div_dividend [31:0] $end
+$var reg 22 N div_divisor [21:0] $end
+$var reg 32 O div_quotient [31:0] $end
+$var reg 32 P div_remainder [31:0] $end
+$var reg 6 Q div_count [5:0] $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+
+#0
+$dumpvars
+0!
+0"
+0#
+b0 $
+b0 %
+0&
+b0 '
+0(
+0)
+b0 *
+0+
+0,
+b0 -
+b0 .
+bx /
+r0 0
+r0 1
+bx 2
+bx 3
+04
+05
+06
+b0 7
+b0 8
+09
+1:
+b0 ;
+0<
+b0 =
+0>
+0?
+b0 @
+b0 A
+b0 B
+0C
+0D
+b0 E
+b0 F
+b0 G
+b0 H
+b0 I
+b0 J
+b0 K
+b0 L
+b0 M
+b0 N
+b0 O
+b0 P
+b0 Q
+$end
+
+#10000
+1!
+14
+
+#20000
+0!
+04
+
+#30000
+1!
+14
+
+#40000
+0!
+04
+
+#50000
+1!
+14
+
+#60000
+0!
+04
+
+#70000
+1!
+14
+
+#80000
+0!
+04
+
+#90000
+1!
+1"
+14
+15
+
+#100000
+0!
+04
+
+#110000
+1!
+14
+
+#120000
+0!
+04
+
+#130000
+1!
+1#
+1)
+14
+16
+1D
+b1 G
+
+#140000
+0!
+04
+
+#150000
+1!
+0#
+b0 /
+r-512 0
+r2800 1
+b101011110000 2
+b101011110000 3
+14
+06
+
+#160000
+0!
+04
+
+#170000
+1!
+14
+
+#171000
+b101011110000 $
+b101011110000 %
+1&
+b1 /
+r-511 0
+b101011110000 7
+b101011110000 8
+19
+
+#180000
+0!
+04
+
+#190000
+1!
+1+
+14
+1<
+1>
+
+#191000
+b10 /
+r-510 0
+
+#200000
+0!
+04
+
+#210000
+1!
+14
+b1 H
+b1 K
+
+#211000
+b11 /
+r-509 0
+
+#220000
+0!
+04
+
+#230000
+1!
+14
+b10 H
+b10 K
+
+#231000
+b100 /
+r-508 0
+
+#240000
+0!
+04
+
+#250000
+1!
+14
+b11 H
+b11 K
+
+#251000
+b101 /
+r-507 0
+
+#260000
+0!
+04
+
+#270000
+1!
+14
+b100 H
+b100 K
+
+#271000
+b110 /
+r-506 0
+
+#280000
+0!
+04
+
+#290000
+1!
+14
+b101 H
+b101 K
+
+#291000
+b111 /
+r-505 0
+
+#300000
+0!
+04
+
+#310000
+1!
+14
+b110 H
+b110 K
+
+#311000
+b1000 /
+r-504 0
+
+#320000
+0!
+04
+
+#330000
+1!
+14
+b111 H
+b111 K
+
+#331000
+b1001 /
+r-503 0
+
+#340000
+0!
+04
+
+#350000
+1!
+14
+b1000 H
+b1000 K
+
+#351000
+b1010 /
+r-502 0
+
+#360000
+0!
+04
+
+#370000
+1!
+14
+b1001 H
+b1001 K
+
+#371000
+b1011 /
+r-501 0
+
+#380000
+0!
+04
+
+#390000
+1!
+14
+b1010 H
+b1010 K
+
+#391000
+b1100 /
+r-500 0
+
+#400000
+0!
+04
+
+#410000
+1!
+14
+b1011 H
+b1011 K
+
+#411000
+b1101 /
+r-499 0
+
+#420000
+0!
+04
+
+#430000
+1!
+14
+b1100 H
+b1100 K
+
+#431000
+b1110 /
+r-498 0
+
+#440000
+0!
+04
+
+#450000
+1!
+14
+b1101 H
+b1101 K
+
+#451000
+b1111 /
+r-497 0
+
+#460000
+0!
+04
+
+#470000
+1!
+14
+b1110 H
+b1110 K
+
+#471000
+b10000 /
+r-496 0
+
+#480000
+0!
+04
+
+#490000
+1!
+14
+b1111 H
+b1111 K
+
+#491000
+b10001 /
+r-495 0
+
+#500000
+0!
+04
+
+#510000
+1!
+14
+b10000 H
+b10000 K
+
+#511000
+b10010 /
+r-494 0
+
+#520000
+0!
+04
+
+#530000
+1!
+14
+b10001 H
+b10001 K
+
+#531000
+b10011 /
+r-493 0
+
+#540000
+0!
+04
+
+#550000
+1!
+14
+b10010 H
+b10010 K
+
+#551000
+b10100 /
+r-492 0
+
+#560000
+0!
+04
+
+#570000
+1!
+14
+b10011 H
+b10011 K
+
+#571000
+b10101 /
+r-491 0
+
+#580000
+0!
+04
+
+#590000
+1!
+14
+b10100 H
+b10100 K
+
+#591000
+b10110 /
+r-490 0
+
+#600000
+0!
+04
+
+#610000
+1!
+14
+b10101 H
+b10101 K
+
+#611000
+b10111 /
+r-489 0
+
+#620000
+0!
+04
+
+#630000
+1!
+14
+b10110 H
+b10110 K
+
+#631000
+b11000 /
+r-488 0
+
+#640000
+0!
+04
+
+#650000
+1!
+14
+b10111 H
+b10111 K
+
+#651000
+b11001 /
+r-487 0
+
+#660000
+0!
+04
+
+#670000
+1!
+14
+b11000 H
+b11000 K
+
+#671000
+b11010 /
+r-486 0
+
+#680000
+0!
+04
+
+#690000
+1!
+14
+b11001 H
+b11001 K
+
+#691000
+b11011 /
+r-485 0
+
+#700000
+0!
+04
+
+#710000
+1!
+14
+b11010 H
+b11010 K
+
+#711000
+b11100 /
+r-484 0
+
+#720000
+0!
+04
+
+#730000
+1!
+14
+b11011 H
+b11011 K
+
+#731000
+b11101 /
+r-483 0
+
+#740000
+0!
+04
+
+#750000
+1!
+14
+b11100 H
+b11100 K
+
+#751000
+b11110 /
+r-482 0
+
+#760000
+0!
+04
+
+#770000
+1!
+14
+b11101 H
+b11101 K
+
+#771000
+b11111 /
+r-481 0
+
+#780000
+0!
+04
+
+#790000
+1!
+14
+b11110 H
+b11110 K
+
+#791000
+b100000 /
+r-480 0
+
+#800000
+0!
+04
+
+#810000
+1!
+14
+b11111 H
+b11111 K
+
+#811000
+b100001 /
+r-479 0
+
+#820000
+0!
+04
+
+#830000
+1!
+14
+b100000 H
+b100000 K
+
+#831000
+b100010 /
+r-478 0
+
+#840000
+0!
+04
+
+#850000
+1!
+14
+b100001 H
+b100001 K
+
+#851000
+b100011 /
+r-477 0
+
+#860000
+0!
+04
+
+#870000
+1!
+14
+b100010 H
+b100010 K
+
+#871000
+b100100 /
+r-476 0
+
+#880000
+0!
+04
+
+#890000
+1!
+14
+b100011 H
+b100011 K
+
+#891000
+b100101 /
+r-475 0
+
+#900000
+0!
+04
+
+#910000
+1!
+14
+b100100 H
+b100100 K
+
+#911000
+b100110 /
+r-474 0
+
+#920000
+0!
+04
+
+#930000
+1!
+14
+b100101 H
+b100101 K
+
+#931000
+b100111 /
+r-473 0
+
+#940000
+0!
+04
+
+#950000
+1!
+14
+b100110 H
+b100110 K
+
+#951000
+b101000 /
+r-472 0
+
+#960000
+0!
+04
+
+#970000
+1!
+14
+b100111 H
+b100111 K
+
+#971000
+b101001 /
+r-471 0
+
+#980000
+0!
+04
+
+#990000
+1!
+14
+b101000 H
+b101000 K
+
+#991000
+b101010 /
+r-470 0
+
+#1000000
+0!
+04

@@ -1,0 +1,9 @@
+0.7
+2020.2
+Nov 14 2025
+19:37:27
+C:/Users/mnbor/OneDrive/Documents/Internship/Project_1/SPRi/SPRi.sim/sim_1/behav/xsim/glbl.v,1756381829,verilog,,,,glbl,,,,,,,,
+C:/Users/mnbor/OneDrive/Documents/Internship/rtl/bg_subtraction.v,1782670255,verilog,,C:/Users/mnbor/OneDrive/Documents/Internship/rtl/roi_centroid.v,,bg_subtraction,,,../../../../../../../../../../../AMDDesignTools/2025.2/Vivado/data/rsb/busdef,,,,,
+C:/Users/mnbor/OneDrive/Documents/Internship/rtl/roi_centroid.v,1782670264,verilog,,C:/Users/mnbor/OneDrive/Documents/Internship/rtl/spr_pipeline.v,,roi_centroid,,,../../../../../../../../../../../AMDDesignTools/2025.2/Vivado/data/rsb/busdef,,,,,
+C:/Users/mnbor/OneDrive/Documents/Internship/rtl/spr_pipeline.v,1782670264,verilog,,C:/Users/mnbor/OneDrive/Documents/Internship/tb/tb_spr_pipeline.v,,spr_pipeline,,,../../../../../../../../../../../AMDDesignTools/2025.2/Vivado/data/rsb/busdef,,,,,
+C:/Users/mnbor/OneDrive/Documents/Internship/tb/tb_spr_pipeline.v,1781183363,verilog,,,,tb_spr_pipeline,,,../../../../../../../../../../../AMDDesignTools/2025.2/Vivado/data/rsb/busdef,,,,,
