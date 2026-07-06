@@ -1,0 +1,5 @@
+# Hide these FPGA folders
+SPRi FPGA/bg_substraction/
+SPRi FPGA/roi_centroid/
+SPRi FPGA/SPRi_presentation (1).pptx
+SPRi FPGA/~$SPRi_presentation (1).pptx
