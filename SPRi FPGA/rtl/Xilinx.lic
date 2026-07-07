@@ -1,0 +1,47 @@
+# ----- REMOVE LINES ABOVE HERE --------------------------
+#
+# This license is valid from Mon Jul 06 10:53:56 UTC 2026.
+#
+# This is license NODELOCKED to HOSTID=44F79F5CB7ED;
+# there is no need to run lmgrd for this license.
+#
+#
+# This is a permanent license generated on Mon Jul 06 10:53:56 UTC 2026
+INCREMENT Vivado_Basic_Package xilinxd 2027.07 07-jul-2027 uncounted \
+96B6EDF16B72 \
+VENDOR_STRING=License_Tier:BASIC,mnboro08@gmail.com,Vivado_Basic_Package,software,permanent,_213637165_0_0_441 \
+HOSTID=44f79f5cb7ed ISSUER="Xilinx Inc" START=06-Jul-2026 \
+TS_OK
+#
+# This is a permanent license generated on Mon Jul 06 10:53:56 UTC 2026
+INCREMENT Vivado_Simulation xilinxd 2027.07 07-jul-2027 uncounted \
+2EDD6D3DFC26 \
+VENDOR_STRING=License_Tier:BASIC,mnboro08@gmail.com,Vivado_Simulation,software,permanent,_213637165_0_0_625 \
+HOSTID=44f79f5cb7ed ISSUER="Xilinx Inc" START=06-Jul-2026 \
+TS_OK
+#
+# This is a permanent license generated on Mon Jul 06 10:53:56 UTC 2026
+INCREMENT Vivado_Synthesis xilinxd 2027.07 07-jul-2027 uncounted \
+593D0E86E443 \
+VENDOR_STRING=License_Tier:BASIC,mnboro08@gmail.com,Vivado_Synthesis,software,permanent,_213637165_0_0_149 \
+HOSTID=44f79f5cb7ed ISSUER="Xilinx Inc" START=06-Jul-2026 \
+TS_OK
+#
+# This is a permanent license generated on Mon Jul 06 10:53:56 UTC 2026
+INCREMENT Vivado_Implementation xilinxd 2027.07 07-jul-2027 uncounted \
+4DE1259560E8 \
+VENDOR_STRING=License_Tier:BASIC,mnboro08@gmail.com,Vivado_Implementation,software,permanent,_213637165_0_0_209 \
+HOSTID=44f79f5cb7ed ISSUER="Xilinx Inc" START=06-Jul-2026 \
+TS_OK
+#
+#
+# ----------------------------------------------------------------------
+#  The following PACKAGE definition is a REQUIRED part of this license:
+#
+PACKAGE Vivado_Basic_Package xilinxd 2027.07 EEE2298312F3 \
+COMPONENTS="Analyzer HLS PartialReconfiguration SDK \
+Vivado_Tier" OPTIONS=SUITE
+#
+# ------------------------------------------------------------------------------
+#
+# ----- REMOVE LINES BELOW HERE --------------------------
