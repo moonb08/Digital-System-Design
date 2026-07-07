@@ -50,7 +50,7 @@ module roi_centroid #(
     reg  [ACC_WIDTH-1:0]    div_remainder;
     reg  [5:0]              div_count;
 
-    always @(posedge clk or negedge rst_n) begin
+    always @(posedge clk) begin
         if (!rst_n) begin
             state        <= IDLE;
             pixel_addr   <= {ADDR_WIDTH{1'b0}};

@@ -1,10 +1,17 @@
-INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/mnbor/OneDrive/Documents/Internship/rtl/bg_subtraction.v" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/Git_Hub_Projects/DSD/Digital-System-Design/SPRi FPGA/rtl/bg_subtraction.v" into library xil_defaultlib
 INFO: [VRFC 10-311] analyzing module bg_subtraction
-INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/mnbor/OneDrive/Documents/Internship/rtl/roi_centroid.v" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/Git_Hub_Projects/DSD/Digital-System-Design/SPRi FPGA/rtl/roi_centroid.v" into library xil_defaultlib
 INFO: [VRFC 10-311] analyzing module roi_centroid
-INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/mnbor/OneDrive/Documents/Internship/rtl/spr_pipeline.v" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/Git_Hub_Projects/DSD/Digital-System-Design/SPRi FPGA/rtl/spr_accel_axi.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module spr_accel_axi
+WARNING: [VRFC 10-3380] identifier 'wr_en' is used before its declaration [D:/Git_Hub_Projects/DSD/Digital-System-Design/SPRi FPGA/rtl/spr_accel_axi.v:123]
+WARNING: [VRFC 10-3380] identifier 'wr_en' is used before its declaration [D:/Git_Hub_Projects/DSD/Digital-System-Design/SPRi FPGA/rtl/spr_accel_axi.v:144]
+WARNING: [VRFC 10-3380] identifier 'wr_en' is used before its declaration [D:/Git_Hub_Projects/DSD/Digital-System-Design/SPRi FPGA/rtl/spr_accel_axi.v:160]
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/Git_Hub_Projects/DSD/Digital-System-Design/SPRi FPGA/rtl/spr_pipeline.v" into library xil_defaultlib
 INFO: [VRFC 10-311] analyzing module spr_pipeline
-INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/mnbor/OneDrive/Documents/Internship/tb/tb_spr_pipeline.v" into library xil_defaultlib
-INFO: [VRFC 10-311] analyzing module tb_spr_pipeline
-INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/mnbor/OneDrive/Documents/Internship/Project_1/SPRi/SPRi.sim/sim_1/behav/xsim/glbl.v" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/Git_Hub_Projects/DSD/Digital-System-Design/SPRi FPGA/rtl/vector_player.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module vector_player
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/Git_Hub_Projects/DSD/Digital-System-Design/SPRi FPGA/tb/tb_board.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_board
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/Git_Hub_Projects/DSD/Digital-System-Design/SPRi FPGA/Project_1/SPRi/SPRi.sim/sim_1/behav/xsim/glbl.v" into library xil_defaultlib
 INFO: [VRFC 10-311] analyzing module glbl

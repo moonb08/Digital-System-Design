@@ -37,6 +37,7 @@ module tb_bg_subtraction;
     wire                     valid_out;
     wire                     ready_out;
     wire                     overflow_flag;
+    wire [PIXEL_WIDTH-1:0]   dip_depth;
 
 // ============================================================
 // Test tracking
@@ -60,7 +61,8 @@ module tb_bg_subtraction;
         .ready_out     (ready_out),
         .diff_pixel    (diff_pixel),
         .valid_out     (valid_out),
-        .overflow_flag (overflow_flag)
+        .overflow_flag (overflow_flag),
+        .dip_depth     (dip_depth)
     );
 
 // ============================================================

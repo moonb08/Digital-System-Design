@@ -1,9 +1,1 @@
 Time resolution is 1 ps
-ERROR: Could not open VCD file sim/tb_spr_pipeline.vcd for writing.
-========================================
-  Full SPR Pipeline Testbench Starting
-  Sensor Size: 1024 pixels | ADC: 12-bit
-========================================
-
---- Starting SPR Frame Simulation ---
-  Simulating Gaussian dip at pixel 512...

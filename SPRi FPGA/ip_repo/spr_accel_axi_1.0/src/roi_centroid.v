@@ -8,9 +8,9 @@
 // FSM: IDLE -> ACCUMULATE (1024 cyc) -> DIVIDE (32 cyc) -> DONE -> IDLE
 
 module roi_centroid #(
-    parameter PIXEL_WIDTH  = 12,
-    parameter IMAGE_WIDTH  = 1280,
-    parameter ADDR_WIDTH   = 11,
+    parameter PIXEL_WIDTH  = 12,        //Resolution
+    parameter IMAGE_WIDTH  = 1280,      //Position
+    parameter ADDR_WIDTH   = 11,        //Address Position
     parameter ACC_WIDTH    = 33,
     parameter DEN_WIDTH    = 23
 )
@@ -50,7 +50,7 @@ module roi_centroid #(
     reg  [ACC_WIDTH-1:0]    div_remainder;
     reg  [5:0]              div_count;
 
-    always @(posedge clk or negedge rst_n) begin
+    always @(posedge clk) begin
         if (!rst_n) begin
             state        <= IDLE;
             pixel_addr   <= {ADDR_WIDTH{1'b0}};

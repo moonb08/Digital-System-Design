@@ -78,7 +78,11 @@ module spr_accel_axi #(
     reg                              axi_rvalid;
     reg  [C_S_AXI_DATA_WIDTH-1:0]    axi_rdata;
     reg  [C_S_AXI_ADDR_WIDTH-1:0]    axi_awaddr;
+    reg  [C_S_AXI_DATA_WIDTH-1:0]    axi_wdata;
+    reg  [C_S_AXI_DATA_WIDTH/8-1:0]  axi_wstrb;
     reg  [C_S_AXI_ADDR_WIDTH-1:0]    axi_araddr;
+    reg                              aw_latched;
+    reg                              w_latched;
 
     assign S_AXI_AWREADY = axi_awready;
     assign S_AXI_WREADY  = axi_wready;
@@ -112,38 +116,55 @@ module spr_accel_axi #(
         if (!S_AXI_ARESETN) begin
             axi_awready <= 1'b0;
             axi_awaddr  <= {C_S_AXI_ADDR_WIDTH{1'b0}};
-        end
-        else if (~axi_awready && S_AXI_AWVALID && S_AXI_WVALID) begin
-            axi_awready <= 1'b1;
-            axi_awaddr  <= S_AXI_AWADDR;
+            aw_latched  <= 1'b0;
         end
         else begin
             axi_awready <= 1'b0;
+            if (wr_en) begin
+                aw_latched <= 1'b0;
+            end
+            else if (!aw_latched && !axi_bvalid && S_AXI_AWVALID) begin
+                axi_awready <= 1'b1;
+                axi_awaddr  <= S_AXI_AWADDR;
+                aw_latched  <= 1'b1;
+            end
         end
     end
 
     // ── Write Data Channel ──
     always @(posedge S_AXI_ACLK) begin
-        if (!S_AXI_ARESETN)
+        if (!S_AXI_ARESETN) begin
             axi_wready <= 1'b0;
-        else if (~axi_wready && S_AXI_WVALID && S_AXI_AWVALID)
-            axi_wready <= 1'b1;
-        else
+            axi_wdata   <= {C_S_AXI_DATA_WIDTH{1'b0}};
+            axi_wstrb   <= {(C_S_AXI_DATA_WIDTH/8){1'b0}};
+            w_latched   <= 1'b0;
+        end
+        else begin
             axi_wready <= 1'b0;
+            if (wr_en) begin
+                w_latched <= 1'b0;
+            end
+            else if (!w_latched && !axi_bvalid && S_AXI_WVALID) begin
+                axi_wready <= 1'b1;
+                axi_wdata   <= S_AXI_WDATA;
+                axi_wstrb   <= S_AXI_WSTRB;
+                w_latched   <= 1'b1;
+            end
+        end
     end
 
     // ── Write Response Channel ──
     always @(posedge S_AXI_ACLK) begin
         if (!S_AXI_ARESETN)
             axi_bvalid <= 1'b0;
-        else if (axi_awready && S_AXI_AWVALID && axi_wready && S_AXI_WVALID && ~axi_bvalid)
+        else if (wr_en)
             axi_bvalid <= 1'b1;
         else if (S_AXI_BREADY && axi_bvalid)
             axi_bvalid <= 1'b0;
     end
 
     // ── Register Write Logic ──
-    wire wr_en = axi_awready && S_AXI_AWVALID && axi_wready && S_AXI_WVALID;
+    wire wr_en = aw_latched && w_latched && !axi_bvalid;
 
     always @(posedge S_AXI_ACLK) begin
         if (!S_AXI_ARESETN) begin
@@ -157,31 +178,32 @@ module spr_accel_axi #(
             if (start_frame)
                 start_frame <= 1'b0;
 
-            // Latch done pulse from pipeline
-            if (pipe_done) begin
-                done_latched <= 1'b1;
-                irq_pending  <= 1'b1;
-            end
 
             if (wr_en) begin
                 case (axi_awaddr[4:2])
                     REG_CTRL: begin
-                        if (S_AXI_WSTRB[0] && S_AXI_WDATA[0])
+                        if (axi_wstrb[0] && axi_wdata[0])
                             start_frame <= 1'b1;
                     end
                     REG_STATUS: begin
                         // W1C: write 1 to bit[1] clears done_latched
-                        if (S_AXI_WSTRB[0] && S_AXI_WDATA[1])
+                        if (axi_wstrb[0] && axi_wdata[1])
                             done_latched <= 1'b0;
                     end
                     REG_IRQ_CTRL: begin
-                        if (S_AXI_WSTRB[0]) begin
-                            irq_enable <= S_AXI_WDATA[0];
-                            if (S_AXI_WDATA[1])
+                        if (axi_wstrb[0]) begin
+                            irq_enable <= axi_wdata[0];
+                            if (axi_wdata[1])
                                 irq_pending <= 1'b0;
                         end
                     end
                 endcase
+            end
+
+            // Latch done pulse from pipeline (placed after AXI write for priority)
+            if (pipe_done) begin
+                done_latched <= 1'b1;
+                irq_pending  <= 1'b1;
             end
         end
     end
@@ -192,7 +214,7 @@ module spr_accel_axi #(
             axi_arready <= 1'b0;
             axi_araddr  <= {C_S_AXI_ADDR_WIDTH{1'b0}};
         end
-        else if (~axi_arready && S_AXI_ARVALID) begin
+        else if (~axi_arready && S_AXI_ARVALID && ~axi_rvalid) begin
             axi_arready <= 1'b1;
             axi_araddr  <= S_AXI_ARADDR;
         end
@@ -213,7 +235,7 @@ module spr_accel_axi #(
                 REG_CTRL:     axi_rdata <= 32'd0;
                 REG_STATUS:   axi_rdata <= {30'd0, done_latched, pipe_busy};
                 REG_P_MIN:    axi_rdata <= {{(32-ADDR_WIDTH){1'b0}}, pipe_p_min};
-                REG_DBG_NUM:  axi_rdata <= pipe_dbg_num;
+                REG_DBG_NUM:  axi_rdata <= pipe_dbg_num[31:0]; // MSB truncated
                 REG_DBG_DEN:  axi_rdata <= {{(32-DEN_WIDTH){1'b0}}, pipe_dbg_den};
                 REG_IRQ_CTRL: axi_rdata <= {30'd0, irq_pending, irq_enable};
                 default:      axi_rdata <= 32'd0;

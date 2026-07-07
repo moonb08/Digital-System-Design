@@ -3,8 +3,8 @@
 //          dip_depth  = max(ref - current, 0)
 
 module bg_subtraction #(
-    parameter PIXEL_WIDTH = 12,
-    parameter IMAGE_WIDTH = 1280
+    parameter PIXEL_WIDTH = 12,     //ADC resolution
+    parameter IMAGE_WIDTH = 1280    //Number of pixels per line (Position)
 )(
     input  wire                     clk,
     input  wire                     rst_n,
@@ -25,7 +25,7 @@ module bg_subtraction #(
     // 13-bit signed subtraction: {0, current} - {0, ref}
     assign diff_raw = {1'b0, current_pixel} - {1'b0, ref_pixel};
 
-    always @(posedge clk or negedge rst_n) begin
+    always @(posedge clk) begin
         if (!rst_n) begin
             diff_pixel    <= {PIXEL_WIDTH{1'b0}};
             valid_out     <= 1'b0;

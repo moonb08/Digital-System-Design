@@ -25,27 +25,21 @@ therefore max(ref - current, 0): ref is the bright baseline, current has the dip
 
 import argparse
 import sys
+from pathlib import Path
+
 import numpy as np
 from PIL import Image, ImageOps
 
-try:
-    import cv2
-    HAVE_CV2 = True
-except ImportError:
-    HAVE_CV2 = False
-
-
 # ---------------------------------------------------------------- loading ----
-VIDEO_EXT = {".mp4", ".avi", ".mov", ".mkv", ".webm", ".m4v"}
+VIDEO_EXT = (".mp4", ".avi", ".mov", ".mkv", ".webm", ".m4v")
 
 
 def load_frame(path, frame_idx=0):
-    """Return an HxWx3 uint8 (or HxW) array. Handles image or video."""
-    lower = path.lower()
-    is_video = any(lower.endswith(e) for e in VIDEO_EXT)
-
-    if is_video:
-        if not HAVE_CV2:
+    """Return an HxWx3 (or HxW) array. Handles image or video."""
+    if path.lower().endswith(VIDEO_EXT):
+        try:
+            import cv2  # lazy import: skips ~0.5 s of startup for image inputs
+        except ImportError:
             sys.exit("Video input needs OpenCV (cv2), which isn't installed.")
         cap = cv2.VideoCapture(path)
         if not cap.isOpened():
@@ -55,40 +49,42 @@ def load_frame(path, frame_idx=0):
         cap.release()
         if not ok:
             sys.exit(f"Could not read frame {frame_idx} from {path}")
-        # cv2 is BGR; flip to RGB for consistency
-        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # cv2 is BGR
 
-    img = Image.open(path)
-    img = ImageOps.exif_transpose(img)   # respect phone portrait/landscape tag
-    # Handle 16-bit TIFFs etc. without clobbering precision
-    arr = np.asarray(img)
-    if arr.ndim == 2:
-        return arr
-    if arr.shape[2] == 4:  # drop alpha
+    with Image.open(path) as img:
+        img = ImageOps.exif_transpose(img)  # respect phone orientation tag
+        arr = np.asarray(img)               # keeps 16-bit TIFF precision
+    if arr.ndim == 3 and arr.shape[2] == 4:  # drop alpha
         arr = arr[:, :, :3]
     return arr
 
 
 # ------------------------------------------------------------- channel ext ---
+_LUMA = np.array([0.299, 0.587, 0.114])  # Rec. 601
+_RGB_IDX = {"r": 0, "g": 1, "b": 2}
+
+
 def to_channel(frame, channel):
     """Reduce HxWx3 (or HxW) to a single-channel HxW float array."""
     if frame.ndim == 2:
-        return frame.astype(np.float64)
-
-    r, g, b = frame[:, :, 0], frame[:, :, 1], frame[:, :, 2]
+        return frame.astype(np.float64, copy=False)
     if channel == "gray":
-        # Rec. 601 luma
-        return 0.299 * r + 0.587 * g + 0.114 * b
-    if channel == "r":
-        return r.astype(np.float64)
-    if channel == "g":
-        return g.astype(np.float64)
-    if channel == "b":
-        return b.astype(np.float64)
-    sys.exit(f"Unknown channel: {channel}")
+        return frame[..., :3] @ _LUMA  # single BLAS matmul, no temporaries
+    try:
+        return frame[:, :, _RGB_IDX[channel]].astype(np.float64)
+    except KeyError:
+        sys.exit(f"Unknown channel: {channel}")
 
 
 # ------------------------------------------------------------- reduction -----
+_REDUCERS = {
+    "mean-rows": lambda c: c.mean(axis=0),  # profile indexed by column (x)
+    "sum-rows":  lambda c: c.sum(axis=0),
+    "mean-cols": lambda c: c.mean(axis=1),  # profile indexed by row (y)
+    "sum-cols":  lambda c: c.sum(axis=1),
+}
+
+
 def reduce_profile(chan, mode):
     """
     Collapse a 2-D channel image to a 1-D profile.
@@ -96,27 +92,15 @@ def reduce_profile(chan, mode):
     Axis note (still open in your design):
       * The dip runs along X (varies with COLUMN index):  use rows->  (length = W)
       * The dip runs along Y (varies with ROW index):     use cols->  (length = H)
-
-    modes:
-      mean-rows / sum-rows : collapse vertical -> profile indexed by column (x)
-      mean-cols / sum-cols : collapse horizontal -> profile indexed by row (y)
-      line-row=N           : single horizontal scan line at row N  (length = W)
-      line-col=N           : single vertical   scan line at col N  (length = H)
     """
-    if mode == "mean-rows":
-        return chan.mean(axis=0)
-    if mode == "sum-rows":
-        return chan.sum(axis=0)
-    if mode == "mean-cols":
-        return chan.mean(axis=1)
-    if mode == "sum-cols":
-        return chan.sum(axis=1)
+    if mode in _REDUCERS:
+        return _REDUCERS[mode](chan)
     if mode.startswith("line-row"):
         n = int(mode.split("=")[1]) if "=" in mode else chan.shape[0] // 2
-        return chan[n, :]
+        return chan[n, :].astype(np.float64)
     if mode.startswith("line-col"):
         n = int(mode.split("=")[1]) if "=" in mode else chan.shape[1] // 2
-        return chan[:, n]
+        return chan[:, n].astype(np.float64)
     sys.exit(f"Unknown reduce mode: {mode}")
 
 
@@ -134,12 +118,12 @@ def scale_to_bits(profile, bits, normalize):
     full = (1 << bits) - 1
     if normalize:
         lo, hi = float(profile.min()), float(profile.max())
-        span = (hi - lo) if hi > lo else 1.0
-        codes = (profile - lo) / span * full
+        span = (hi - lo) or 1.0
+        codes = (profile - lo) * (full / span)
     else:
         # Assume an 8-bit source unless values exceed 255 (then use observed max)
-        src_max = 255.0 if profile.max() <= 255.0 else float(profile.max())
-        codes = profile / src_max * full
+        src_max = max(255.0, float(profile.max()))
+        codes = profile * (full / src_max)
     return np.clip(np.rint(codes), 0, full).astype(np.int64)
 
 
@@ -154,40 +138,38 @@ def synth_reference(codes, method, bits):
     """
     full = (1 << bits) - 1
     if method == "flat":
-        return np.full_like(codes, int(codes.max()))
+        return np.full_like(codes, codes.max())
     if method == "smooth":
-        # wide moving-average baseline; kernel ~ 1/8 of the line
-        k = max(9, len(codes) // 8) | 1  # force odd
+        # wide moving-average baseline via cumsum: O(n) instead of O(n*k)
+        k = max(9, len(codes) // 8) | 1  # force odd; kernel ~ 1/8 of the line
         pad = k // 2
         padded = np.pad(codes.astype(np.float64), pad, mode="edge")
-        kern = np.ones(k) / k
-        base = np.convolve(padded, kern, mode="valid")
+        cs = np.concatenate(([0.0], np.cumsum(padded)))
+        base = (cs[k:] - cs[:-k]) / k
         return np.clip(np.rint(base), 0, full).astype(np.int64)
     sys.exit(f"Unknown --synth-ref method: {method}")
 
 
 # ------------------------------------------------------------- writers -------
 def write_hex(path, codes, bits, meta):
-    nib = (bits + 3) // 4
-    with open(path, "w") as f:
-        for line in meta:
-            f.write(f"// {line}\n")
-        for v in codes:
-            f.write(f"{v:0{nib}X}\n")
+    nib = -(-bits // 4)  # ceil(bits/4)
+    header = "".join(f"// {line}\n" for line in meta)
+    body = "\n".join(format(v, f"0{nib}X") for v in codes.tolist())
+    Path(path).write_text(header + body + "\n")
 
 
 def write_report(path, cur, ref, bits):
-    dip = np.maximum(ref.astype(np.int64) - cur.astype(np.int64), 0)
-    argmin = int(np.argmin(cur))
-    argmax_dip = int(np.argmax(dip))
+    dip = np.maximum(ref - cur, 0)
+    argmin = int(cur.argmin())
+    argmax_dip = int(dip.argmax())
+    table = np.column_stack((np.arange(len(cur)), cur, ref, dip))
     with open(path, "w") as f:
         f.write(f"# samples={len(cur)}  bits={bits}\n")
         f.write(f"# current: min={cur.min()} max={cur.max()} "
                 f"argmin(dip pos)={argmin}\n")
         f.write(f"# dip_depth: max={dip.max()} at index {argmax_dip}\n")
         f.write("# idx  current  ref  dip_depth\n")
-        for i, (c, r, d) in enumerate(zip(cur, ref, dip)):
-            f.write(f"{i:5d}  {c:5d}  {r:5d}  {d:5d}\n")
+        np.savetxt(f, table, fmt="%5d  %5d  %5d  %5d")  # vectorized dump
     return argmin, argmax_dip, int(dip.max())
 
 
@@ -214,6 +196,15 @@ def save_plot(path, cur, ref):
     return True
 
 
+# ------------------------------------------------------------- pipeline ------
+def frame_to_codes(path, args):
+    """Full path->codes pipeline, shared by the current and reference frames."""
+    frame = load_frame(path, args.frame)
+    chan = to_channel(frame, args.channel)
+    prof = resample(reduce_profile(chan, args.reduce), args.width)
+    return scale_to_bits(prof, args.bits, args.normalize), frame.shape
+
+
 # ---------------------------------------------------------------- main -------
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
@@ -238,17 +229,11 @@ def main():
     args = ap.parse_args()
 
     # --- current frame -> profile -> codes ---
-    frame = load_frame(args.input, args.frame)
-    chan = to_channel(frame, args.channel)
-    prof = resample(reduce_profile(chan, args.reduce), args.width)
-    cur = scale_to_bits(prof, args.bits, args.normalize)
+    cur, shape = frame_to_codes(args.input, args)
 
     # --- reference: real capture, else synthesized ---
     if args.ref:
-        rframe = load_frame(args.ref, args.frame)
-        rchan = to_channel(rframe, args.channel)
-        rprof = resample(reduce_profile(rchan, args.reduce), args.width)
-        ref = scale_to_bits(rprof, args.bits, args.normalize)
+        ref, _ = frame_to_codes(args.ref, args)
         ref_src = f"real capture: {args.ref}"
     else:
         ref = synth_reference(cur, args.synth_ref, args.bits)
@@ -265,11 +250,11 @@ def main():
     pos, dpos, dmax = write_report(args.report, cur, ref, args.bits)
     plotted = save_plot(args.plot, cur, ref)
 
-    print(f"input frame  : {frame.shape}")
+    print(f"input frame  : {shape}")
     print(f"reduce/axis  : {args.reduce}  channel={args.channel}")
     print(f"reference    : {ref_src}")
     print(f"samples      : {len(cur)}  ({args.bits}-bit, "
-          f"max code {(1<<args.bits)-1})")
+          f"max code {(1 << args.bits) - 1})")
     print(f"current: min={cur.min()} max={cur.max()}  darkest pixel @ p={pos}")
     print(f"dip_depth: peak={dmax} @ p={dpos}  <- expect roi_centroid p_min near here")
     print(f"wrote        : {args.out}, {args.ref_out}, {args.report}"

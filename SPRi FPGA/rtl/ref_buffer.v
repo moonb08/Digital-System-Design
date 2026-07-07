@@ -45,11 +45,19 @@ module ref_buffer #(
     reg [ADDR_WIDTH-1:0] wr_addr;
     reg [ADDR_WIDTH-1:0] rd_addr;
 
-    always @(posedge clk or negedge rst_n) begin
+    // BRAM inference block (no reset)
+    always @(posedge clk) begin
+        if (!line_start && load_en && wr_valid)
+            mem[wr_addr] <= wr_data;
+        
+        if (!line_start && !load_en && rd_valid)
+            ref_out <= mem[rd_addr];
+    end
+
+    always @(posedge clk) begin
         if (!rst_n) begin
             wr_addr   <= {ADDR_WIDTH{1'b0}};
             rd_addr   <= {ADDR_WIDTH{1'b0}};
-            ref_out   <= {PIXEL_WIDTH{1'b0}};
             ref_valid <= 1'b0;
             loaded    <= 1'b0;
         end
@@ -62,11 +70,11 @@ module ref_buffer #(
                 // contract: start pulses one cycle before the first pixel).
                 wr_addr <= {ADDR_WIDTH{1'b0}};
                 rd_addr <= {ADDR_WIDTH{1'b0}};
+                if (load_en) loaded <= 1'b0;
             end
             else begin
                 // CAPTURE
                 if (load_en && wr_valid) begin
-                    mem[wr_addr] <= wr_data;
                     if (wr_addr == IMAGE_WIDTH-1) begin
                         wr_addr <= {ADDR_WIDTH{1'b0}};
                         loaded  <= 1'b1;
@@ -78,7 +86,6 @@ module ref_buffer #(
 
                 // REPLAY (synchronous read → ref_out valid next cycle)
                 if (!load_en && rd_valid) begin
-                    ref_out   <= mem[rd_addr];
                     ref_valid <= 1'b1;
                     if (rd_addr == IMAGE_WIDTH-1)
                         rd_addr <= {ADDR_WIDTH{1'b0}};

@@ -25,7 +25,7 @@ module bg_subtraction #(
     // 13-bit signed subtraction: {0, current} - {0, ref}
     assign diff_raw = {1'b0, current_pixel} - {1'b0, ref_pixel};
 
-    always @(posedge clk or negedge rst_n) begin
+    always @(posedge clk) begin
         if (!rst_n) begin
             diff_pixel    <= {PIXEL_WIDTH{1'b0}};
             valid_out     <= 1'b0;

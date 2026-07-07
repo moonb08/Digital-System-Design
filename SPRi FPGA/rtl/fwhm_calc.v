@@ -42,14 +42,21 @@ module fwhm_calc #(
     reg [PIXEL_WIDTH-1:0]  half_max;
 
     reg [ADDR_WIDTH-1:0]   scan_addr;
-    reg [ADDR_WIDTH-1:0]   scan_count;
+    reg [ADDR_WIDTH:0]     scan_count;
     reg [PIXEL_WIDTH-1:0]  rd_data;
+
+    // BRAM inference block (no reset)
+    always @(posedge clk) begin
+        if (state == STORE && valid_in)
+            dip_mem[wr_addr] <= dip_depth;
+        rd_data <= dip_mem[scan_addr];
+    end
 
     reg [ADDR_WIDTH-1:0]   left_edge;
     reg [ADDR_WIDTH-1:0]   right_edge;
     reg                    found_left;
 
-    always @(posedge clk or negedge rst_n) begin
+    always @(posedge clk) begin
         if (!rst_n) begin
             state          <= IDLE;
             wr_addr        <= {ADDR_WIDTH{1'b0}};
@@ -57,8 +64,7 @@ module fwhm_calc #(
             max_depth      <= {PIXEL_WIDTH{1'b0}};
             half_max       <= {PIXEL_WIDTH{1'b0}};
             scan_addr      <= {ADDR_WIDTH{1'b0}};
-            scan_count     <= {ADDR_WIDTH{1'b0}};
-            rd_data        <= {PIXEL_WIDTH{1'b0}};
+            scan_count     <= {(ADDR_WIDTH+1){1'b0}};
             left_edge      <= {ADDR_WIDTH{1'b0}};
             right_edge     <= {ADDR_WIDTH{1'b0}};
             found_left     <= 1'b0;
@@ -92,8 +98,6 @@ module fwhm_calc #(
                 // Pass 1: Write dip_depth to BRAM, track maximum
                 STORE: begin
                     if (valid_in) begin
-                        dip_mem[wr_addr] <= dip_depth;
-
                         if (dip_depth > max_depth)
                             max_depth <= dip_depth;
 
@@ -102,16 +106,16 @@ module fwhm_calc #(
 
                         if (pix_count == IMAGE_WIDTH - 1) begin
                             if (dip_depth > max_depth) begin
-                                half_max      <= dip_depth >> 1;
+                                half_max      <= ({1'b0, dip_depth} + 1'b1) >> 1;
                                 dbg_max_depth <= dip_depth;
                             end
                             else begin
-                                half_max      <= max_depth >> 1;
+                                half_max      <= ({1'b0, max_depth} + 1'b1) >> 1;
                                 dbg_max_depth <= max_depth;
                             end
 
                             scan_addr  <= {ADDR_WIDTH{1'b0}};
-                            scan_count <= {ADDR_WIDTH{1'b0}};
+                            scan_count <= {(ADDR_WIDTH+1){1'b0}};
 
                             if (max_depth == {PIXEL_WIDTH{1'b0}} && dip_depth == {PIXEL_WIDTH{1'b0}}) begin
                                 fwhm          <= {ADDR_WIDTH{1'b0}};
@@ -128,8 +132,6 @@ module fwhm_calc #(
                 // Pass 2: Read BRAM, find half-max crossings
                 // 1-cycle read latency: scan_count tracks processed pixel
                 SCAN: begin
-                    rd_data <= dip_mem[scan_addr];
-
                     if (scan_addr < IMAGE_WIDTH - 1)
                         scan_addr <= scan_addr + 1'b1;
 
