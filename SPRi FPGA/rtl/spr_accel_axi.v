@@ -2,11 +2,16 @@
 //
 // Register Map (byte-addressed):
 //   0x00 CTRL      [W]     bit[0] = start_frame (self-clearing pulse)
-//   0x04 STATUS    [R/W1C] bit[0] = busy, bit[1] = done_latched (W1C)
-//   0x08 P_MIN     [R]     bit[9:0] = resonance dip position
-//   0x0C DBG_NUM   [R]     bit[31:0] = Σ(p × dip_depth)
-//   0x10 DBG_DEN   [R]     bit[21:0] = Σ(dip_depth)
+//   0x04 STATUS    [R/W1C] bit[0] = busy (centroid|fwhm), bit[1] = done_latched (W1C,
+//                          set when BOTH centroid and FWHM results are valid),
+//                          bit[2] = centroid done, bit[3] = fwhm done (RO latches)
+//   0x08 P_MIN     [R]     bit[10:0] = resonance dip position (weighted centroid)
+//   0x0C DBG_NUM   [R]     bit[31:0] = Σ(p × dip_depth) (MSB of 33 truncated)
+//   0x10 DBG_DEN   [R]     bit[22:0] = Σ(dip_depth)
 //   0x14 IRQ_CTRL  [R/W]   bit[0] = irq_enable, bit[1] = W1C irq_pending
+//   0x18 FWHM      [R]     bit[10:0] = dip width at half-maximum
+//   0x1C FWHM_CTR  [R]     bit[10:0] = dip position from FWHM midpoint
+//                          (left_edge + right_edge)/2 — independent p_min estimate
 
 `timescale 1ns / 1ps
 
@@ -69,6 +74,8 @@ module spr_accel_axi #(
     localparam REG_DBG_NUM  = 3'd3;  // 0x0C
     localparam REG_DBG_DEN  = 3'd4;  // 0x10
     localparam REG_IRQ_CTRL = 3'd5;  // 0x14
+    localparam REG_FWHM     = 3'd6;  // 0x18
+    localparam REG_FWHM_CTR = 3'd7;  // 0x1C
 
     // ── AXI4-Lite Protocol Registers ──
     reg                              axi_awready;
@@ -95,7 +102,9 @@ module spr_accel_axi #(
 
     // ── Control / Status Registers ──
     reg  start_frame;
-    reg  done_latched;
+    reg  done_latched;      // both results valid (user-visible, W1C)
+    reg  cen_done_latched;  // centroid finished this frame
+    reg  fwhm_done_latched; // fwhm finished this frame
     reg  irq_enable;
     reg  irq_pending;
 
@@ -108,6 +117,17 @@ module spr_accel_axi #(
     wire                     pipe_overflow;
     wire [ACC_WIDTH-1:0]     pipe_dbg_num;
     wire [DEN_WIDTH-1:0]     pipe_dbg_den;
+    wire [ADDR_WIDTH-1:0]    pipe_fwhm;
+    wire [ADDR_WIDTH-1:0]    pipe_fwhm_center;
+    wire                     pipe_fwhm_done;
+    wire                     pipe_fwhm_busy;
+    wire [PIXEL_WIDTH-1:0]   pipe_dbg_max_depth;
+    wire [ADDR_WIDTH-1:0]    pipe_dbg_left_edge;
+    wire [ADDR_WIDTH-1:0]    pipe_dbg_right_edge;
+
+    // Frame complete when the LAST engine finishes (either order, or same cycle)
+    wire frame_complete = (pipe_fwhm_done && (cen_done_latched  || pipe_done)) ||
+                          (pipe_done      && (fwhm_done_latched || pipe_fwhm_done));
 
     assign irq = irq_enable & irq_pending;
 
@@ -168,16 +188,20 @@ module spr_accel_axi #(
 
     always @(posedge S_AXI_ACLK) begin
         if (!S_AXI_ARESETN) begin
-            start_frame  <= 1'b0;
-            done_latched <= 1'b0;
-            irq_enable   <= 1'b0;
-            irq_pending  <= 1'b0;
+            start_frame       <= 1'b0;
+            done_latched      <= 1'b0;
+            cen_done_latched  <= 1'b0;
+            fwhm_done_latched <= 1'b0;
+            irq_enable        <= 1'b0;
+            irq_pending       <= 1'b0;
         end
         else begin
-            // Self-clear start after 1 cycle
-            if (start_frame)
-                start_frame <= 1'b0;
-
+            // Self-clear start after 1 cycle; re-arm per-engine done latches
+            if (start_frame) begin
+                start_frame       <= 1'b0;
+                cen_done_latched  <= 1'b0;
+                fwhm_done_latched <= 1'b0;
+            end
 
             if (wr_en) begin
                 case (axi_awaddr[4:2])
@@ -200,8 +224,14 @@ module spr_accel_axi #(
                 endcase
             end
 
-            // Latch done pulse from pipeline (placed after AXI write for priority)
-            if (pipe_done) begin
+            // Latch engine done pulses (placed after AXI write for priority)
+            if (pipe_done)
+                cen_done_latched  <= 1'b1;
+            if (pipe_fwhm_done)
+                fwhm_done_latched <= 1'b1;
+
+            // Both results valid -> user-visible done + interrupt
+            if (frame_complete) begin
                 done_latched <= 1'b1;
                 irq_pending  <= 1'b1;
             end
@@ -233,11 +263,14 @@ module spr_accel_axi #(
             axi_rvalid <= 1'b1;
             case (axi_araddr[4:2])
                 REG_CTRL:     axi_rdata <= 32'd0;
-                REG_STATUS:   axi_rdata <= {30'd0, done_latched, pipe_busy};
+                REG_STATUS:   axi_rdata <= {28'd0, fwhm_done_latched, cen_done_latched,
+                                            done_latched, pipe_busy | pipe_fwhm_busy};
                 REG_P_MIN:    axi_rdata <= {{(32-ADDR_WIDTH){1'b0}}, pipe_p_min};
                 REG_DBG_NUM:  axi_rdata <= pipe_dbg_num[31:0]; // MSB truncated
                 REG_DBG_DEN:  axi_rdata <= {{(32-DEN_WIDTH){1'b0}}, pipe_dbg_den};
                 REG_IRQ_CTRL: axi_rdata <= {30'd0, irq_pending, irq_enable};
+                REG_FWHM:     axi_rdata <= {{(32-ADDR_WIDTH){1'b0}}, pipe_fwhm};
+                REG_FWHM_CTR: axi_rdata <= {{(32-ADDR_WIDTH){1'b0}}, pipe_fwhm_center};
                 default:      axi_rdata <= 32'd0;
             endcase
         end
@@ -268,7 +301,14 @@ module spr_accel_axi #(
         .valid_out_pixel (pipe_valid_out),
         .overflow_flag   (pipe_overflow),
         .dbg_numerator   (pipe_dbg_num),
-        .dbg_denominator (pipe_dbg_den)
+        .dbg_denominator (pipe_dbg_den),
+        .fwhm            (pipe_fwhm),
+        .fwhm_center     (pipe_fwhm_center),
+        .fwhm_done       (pipe_fwhm_done),
+        .fwhm_busy       (pipe_fwhm_busy),
+        .dbg_max_depth   (pipe_dbg_max_depth),
+        .dbg_left_edge   (pipe_dbg_left_edge),
+        .dbg_right_edge  (pipe_dbg_right_edge)
     );
 
 endmodule

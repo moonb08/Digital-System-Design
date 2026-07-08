@@ -1,5 +1,7 @@
 /* spr_test.c — bare-metal bring-up for spr_accel_axi + vector_player (ZedBoard)
- * Expected UART output per frame: p_min=639  den=121834  PASS
+ * Expected UART output per frame: p_min=639 den=121834 fwhm=30 fwhm_ctr=639 PASS
+ * NOTE: STATUS bit1 now sets only after BOTH centroid and FWHM finish
+ * (~1281 cycles after the line ends, due to the FWHM SCAN pass).
  * (matches Icarus sim and the Python golden model of the a4_pen_line image)
  */
 #include <stdio.h>
@@ -20,6 +22,8 @@
 #define SPR_DBG_NUM  (SPR_BASE + 0x0C)
 #define SPR_DBG_DEN  (SPR_BASE + 0x10)
 #define SPR_IRQ_CTRL (SPR_BASE + 0x14)   /* [0] irq_en, [1] W1C pending      */
+#define SPR_FWHM     (SPR_BASE + 0x18)   /* [10:0] dip width at half-max     */
+#define SPR_FWHM_CTR (SPR_BASE + 0x1C)   /* [10:0] dip pos from FWHM midpoint*/
 
 #define GPIO_DATA    (GPIO_BASE + 0x00)
 #define GPIO_TRI     (GPIO_BASE + 0x04)
@@ -47,8 +51,12 @@ int main(void)
         u32 pmin = Xil_In32(SPR_P_MIN);
         u32 num  = Xil_In32(SPR_DBG_NUM);
         u32 den  = Xil_In32(SPR_DBG_DEN);
-        xil_printf("frame %d: p_min=%u num=%u den=%u  %s\r\n", frame, pmin,
-                   num, den, (pmin == 639 && den == 121834) ? "PASS" : "CHECK");
+        u32 fwhm = Xil_In32(SPR_FWHM);
+        u32 fctr = Xil_In32(SPR_FWHM_CTR);
+        xil_printf("frame %d: p_min=%u num=%u den=%u fwhm=%u fwhm_ctr=%u  %s\r\n",
+                   frame, pmin, num, den, fwhm, fctr,
+                   (pmin == 639 && den == 121834 && fwhm == 30 && fctr == 639)
+                       ? "PASS" : "CHECK");
     }
     xil_printf("done.\r\n");
     return 0;

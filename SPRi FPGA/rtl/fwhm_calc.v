@@ -155,7 +155,9 @@ module fwhm_calc #(
                 DONE_ST: begin
                     if (found_left) begin
                         fwhm        <= right_edge - left_edge + 1'b1;
-                        fwhm_center <= (left_edge + right_edge) >> 1;
+                        // Zero-extend before summing: left+right can need
+                        // ADDR_WIDTH+1 bits (centers past pixel 1024 would wrap)
+                        fwhm_center <= ({1'b0, left_edge} + {1'b0, right_edge}) >> 1;
                     end
                     else begin
                         fwhm        <= {ADDR_WIDTH{1'b0}};

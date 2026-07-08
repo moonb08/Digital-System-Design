@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Root MajorVersion="0" MinorVersion="43">
+  <CompositeFile CompositeFileTopName="bd_ba5d" CanBeSetAsTop="true" CanDisplayChildGraph="true">
+    <Description>Composite Fileset</Description>
+    <Generation Name="SYNTHESIS" State="RESET" Timestamp="1783454103"/>
+    <Generation Name="SIMULATION" State="RESET" Timestamp="1783454103"/>
+    <Generation Name="IMPLEMENTATION" State="STALE" Timestamp="1783454102"/>
+    <Generation Name="HW_HANDOFF" State="STALE" Timestamp="1783454102"/>
+    <Generation Name="INSTANTIATION_TEMPLATE" State="STALE" Timestamp="1783454102"/>
+    <FileCollection Name="SOURCES" Type="SOURCES"/>
+  </CompositeFile>
+</Root>
